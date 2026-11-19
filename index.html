@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07111e">
+<meta name="description" content="VI-LiDAR: Định vị robot 3D trên bản đồ đám mây điểm không cần GPS, sử dụng ROS 2, NDT/GICP, tự tìm vị trí khởi đầu và phục hồi định vị.">
+<title>VI-LiDAR | Robot tự định vị không cần GPS</title>
+<style>
+:root{color-scheme:dark;--bg:#07111e;--card:#0d1b2d;--panel:#102238;--muted:#9eb1c7;--ink:#f2f7ff;--accent:#50e1c0;--blue:#6da8ff;--stroke:#24384e;--amber:#ffca79}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:86px}body{margin:0;background:radial-gradient(ellipse at 80% 0,#123354 0,transparent 32%),var(--bg);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}a:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}a:hover{color:var(--accent)}.container{max-width:1190px;padding:0 24px;margin:auto}.muted{color:var(--muted)}.eyebrow{text-transform:uppercase;letter-spacing:.16em;color:var(--accent);font-size:12px;font-weight:750}.topbar{position:sticky;top:0;z-index:10;background:#07111eea;border-bottom:1px solid var(--stroke);backdrop-filter:blur(14px)}.nav{display:flex;align-items:center;justify-content:space-between;min-height:74px;gap:20px}.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.02em;font-size:20px}.logo{width:33px;height:33px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--blue));color:#06212c}.navlinks{display:flex;align-items:center;gap:22px;font-size:13px;color:#d2dfed}.navcta,.btn.primary{background:var(--accent);color:#082330;font-weight:800;border:1px solid var(--accent)}.navcta{padding:9px 15px;border-radius:10px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #49617b;background:#162b41;color:#fff;border-radius:12px;padding:11px 17px;font-weight:650;transition:.2s}.btn:hover{transform:translateY(-1px);filter:brightness(1.08)}.btn.small{padding:7px 12px;font-size:13px}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.hero{padding:88px 0 36px}.hero-grid{display:grid;grid-template-columns:1fr 1.04fr;gap:48px;align-items:center}.hero h1{font-size:clamp(38px,5.3vw,66px);line-height:1.09;letter-spacing:-.045em;margin:19px 0}.gradient{color:var(--accent)}.lead{font-size:18px;color:#b7c7da;max-width:580px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:27px 0}.micro{font-size:13px;color:var(--muted)}.hero-visual{position:relative;padding:14px;border-radius:22px;border:1px solid #2b4764;background:linear-gradient(145deg,#152b44,#06111f);box-shadow:0 20px 90px #0005}.visual-top{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:4px 8px 13px;font-size:12px;color:#b7cbdb}.status-dot{display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 15px var(--accent);margin-right:7px}.hero-visual img{width:100%;height:auto;display:block;border-radius:12px;border:1px solid #28435d}.visual-caption{font-size:12px;color:var(--muted);margin:13px 7px 3px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:56px}.stat,.panel,.feature,.step,.resource{border:1px solid var(--stroke);background:linear-gradient(150deg,#10243a,#0b1829);border-radius:17px}.stat{padding:22px 20px}.stat strong{display:block;font-size:24px;color:#ebfff9;line-height:1.2}.stat small{font-size:12px;color:var(--muted)}section.block{padding:66px 0}.section-heading{max-width:780px;margin-bottom:31px}h2{font-size:clamp(29px,3.3vw,42px);line-height:1.2;letter-spacing:-.035em;margin:10px 0 13px}h3{font-size:19px;line-height:1.32;margin:0 0 10px}p{margin:10px 0}section.block .intro{color:var(--muted)}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.feature{padding:23px}.feature .glyph{font-size:29px;margin-bottom:13px}.feature p,.step p{font-size:14px;color:#b3c4d8}.subtle{background:#0a1929;border-top:1px solid var(--stroke);border-bottom:1px solid var(--stroke)}.flow-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.step{padding:18px}.step .num{font:800 12px/1 system-ui;color:var(--accent);letter-spacing:.1em}.step h3{margin-top:12px;font-size:16px}.sim-grid{display:grid;grid-template-columns:1.65fr 1fr;gap:19px}.panel{overflow:hidden}.panel-pad{padding:23px}.canvas-wrap{position:relative;background:#061423}.canvas-wrap canvas{display:block;width:100%;height:auto;aspect-ratio:700/410}.canvas-legend{display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--stroke);padding:11px 17px;font-size:12px;color:#a9bcd3}.legend-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.control-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.pill{font-size:11px;display:inline-block;color:#8eebd3;border:1px solid #2d7b71;background:#113a3c;border-radius:50px;padding:4px 9px}.telemetry{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:19px 0}.readout{padding:14px;border-radius:12px;background:#071625;border:1px solid #21364a}.readout label{display:block;color:#8faac2;font-size:12px}.readout strong{font-size:15px;font-variant-numeric:tabular-nums}.buttons{display:flex;flex-wrap:wrap;gap:9px}.select-row{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:19px 0;color:#b2c7d8;font-size:14px}select{background:#0e273c;color:white;border:1px solid #3b5972;border-radius:9px;padding:8px}.note{font-size:12px;color:#aec1d4;padding:13px;border-left:3px solid var(--amber);background:#25241555;margin-top:17px}.table-wrap{overflow-x:auto;border-radius:15px;border:1px solid var(--stroke)}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:15px 17px;text-align:left;border-bottom:1px solid #294057}th{font-weight:750;background:#132a40;white-space:nowrap}td{color:#c6d4e3}tr:last-child td{border:0}.highlight-row td{background:#12352f55}.media-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.media-grid figure{margin:0;border:1px solid var(--stroke);border-radius:16px;overflow:hidden;background:#0e2034}.media-grid img{width:100%;display:block;object-fit:cover;aspect-ratio:16/10}.media-grid figcaption{padding:17px;font-size:13px;color:var(--muted)}.code{position:relative;border:1px solid #35536d;border-radius:14px;background:#050e19;margin:15px 0 18px;overflow:hidden}.code pre{font:13px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;color:#c7ffe9;overflow-x:auto;padding:22px;margin:0}.code button{position:absolute;top:9px;right:10px;border:1px solid #3d617b;background:#17324c;color:#fff;border-radius:7px;padding:5px 9px;font-size:12px}.setup-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:24px}.aside{padding:23px;background:#12293d;border:1px solid #2c4d65;border-radius:16px}.aside ul{padding-left:20px;color:#b9cbda;font-size:14px}.aside li{margin:8px 0}.resource-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.resource{padding:21px;display:block}.resource strong{display:block;margin-bottom:8px}.resource span{font-size:13px;color:var(--muted)}.footer{border-top:1px solid var(--stroke);padding:31px 0 52px;font-size:13px;color:var(--muted)}.footrow{display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap}.mini-heading{margin-top:28px;font-size:16px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:980px){.navlinks{display:none}.hero-grid,.sim-grid,.setup-grid{grid-template-columns:1fr}.hero{padding-top:56px}.stats{grid-template-columns:repeat(2,1fr)}.flow-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:650px){.container{padding:0 16px}.hero{padding-top:39px}.hero h1{font-size:39px}.hero-visual{padding:9px}.stats,.features,.media-grid,.resource-grid,.flow-grid{grid-template-columns:1fr}.stat{padding:16px}section.block{padding:48px 0}.telemetry{grid-template-columns:1fr 1fr}.nav{min-height:64px}.code pre{font-size:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="container nav">
+<a class="brand" href="#dau" aria-label="VI-LiDAR về đầu trang"><span class="logo">◎</span><span>VI-LiDAR</span></a>
+<nav class="navlinks" aria-label="Điều hướng chính"><a href="#tong-quan">Tổng quan</a><a href="#mo-phong">Mô phỏng</a><a href="#kien-truc">Kiến trúc</a><a href="#du-lieu">Đánh giá</a><a href="#cai-dat">Cài đặt</a></nav>
+<a class="navcta" href="https://github.com/xulytiengviet/vi-lidar" target="_blank" rel="noopener noreferrer">Mã nguồn ↗</a>
+</div></header>
+<main id="dau">
+<div class="container hero"><div class="hero-grid">
+<div><div class="eyebrow">ROS 2 · LiDAR 3D · NDT / GICP · Nav2</div>
+<h1>Robot tự biết <span class="gradient">mình đang ở đâu</span> — không cần GPS.</h1>
+<p class="lead">Định vị robot trên bản đồ đám mây điểm 3D đã xây dựng trước, tự tìm vị trí khởi đầu và phục hồi khi mất định vị. Nền tảng mã nguồn mở dành cho AGV, AMR và robot bốn chân.</p>
+<div class="actions"><a href="#mo-phong" class="btn primary">Khám phá mô phỏng ↘</a><a href="#cai-dat" class="btn">Hướng dẫn triển khai</a></div>
+<p class="micro">Dựa trên <a href="https://github.com/rsasaki0109/lidar_localization_ros2" target="_blank" rel="noopener noreferrer"><u>lidar_localization_ros2</u></a> · Việt hóa tài liệu và giao diện; thuật toán lõi giữ nguyên.</p>
+</div>
+<div class="hero-visual">
+<div class="visual-top"><span><span class="status-dot"></span>Định vị toàn cục · ROS 2</span><span>UNITREE GO2 + MID-360</span></div>
+<img src="images/readme/global_localization_jeplo_long_stairs.gif" alt="Minh họa thí nghiệm phát lại dữ liệu Unitree Go2: các ứng viên vị trí, hội tụ và theo dõi robot trên bản đồ" loading="eager">
+<div class="visual-caption">Hình ảnh từ benchmark phát lại JEPLO của dự án gốc; đây không phải luồng cảm biến trực tiếp trên trang web.</div>
+</div></div>
+<div class="stats" aria-label="Các đặc tính chính">
+<div class="stat"><strong>0,02–0,03 m</strong><small>Sai số trung vị trong các nhóm thử nghiệm Go2 được công bố, không phải cam kết chung</small></div>
+<div class="stat"><strong>3D</strong><small>Đám mây điểm bản đồ định dạng .pcd / .ply</small></div>
+<div class="stat"><strong>NDT / GICP</strong><small>Đăng ký đám mây điểm với bản đồ</small></div>
+<div class="stat"><strong>Jazzy · Humble</strong><small>ROS 2 và tích hợp Nav2</small></div>
+</div></div>
+<section id="tong-quan" class="block"><div class="container">
+<div class="section-heading"><div class="eyebrow">Bài toán giải quyết</div><h2>Không cần nhập Initial Pose khi khởi động</h2><p class="intro">Trong một bản đồ có sẵn, robot dùng quét LiDAR để tìm ứng viên vị trí trên toàn bản đồ, kiểm tra mức độ nhất quán và chỉ chấp nhận kết quả đủ tin cậy. Trường hợp mơ hồ, hệ thống yêu cầu hỗ trợ thay vì tự đoán.</p></div>
+<div class="features">
+<div class="feature"><div class="glyph">◉</div><h3>Định vị toàn cục</h3><p>Tìm vị trí khởi đầu từ nhiều vùng ứng viên trên bản đồ, không bắt buộc chỉ định tọa độ ban đầu.</p></div>
+<div class="feature"><div class="glyph">⬡</div><h3>So khớp NDT / GICP</h3><p>NDT (mặc định) hoặc tùy chọn GICP để căn chỉnh quét LiDAR với vùng bản đồ gần vị trí dự đoán.</p></div>
+<div class="feature"><div class="glyph">⌁</div><h3>Hợp nhất chuyển động</h3><p>IMU và odometry hỗ trợ ước lượng chuyển động, đặc biệt trong lúc chất lượng so khớp quét suy giảm.</p></div>
+<div class="feature"><div class="glyph">↺</div><h3>Khôi phục vị trí</h3><p>Giám sát trạng thái; khi mất theo dõi có thể kích hoạt tìm kiếm lại và đặt lại vị trí có kiểm soát.</p></div>
+<div class="feature"><div class="glyph">▦</div><h3>Phù hợp Nav2</h3><p>Xuất pose và chuỗi biến đổi TF cho điều hướng. Khi dùng Nav2 cần thêm bản đồ chiếm chỗ 2D.</p></div>
+<div class="feature"><div class="glyph">⌘</div><h3>Không phải SLAM</h3><p>SLAM xây dựng bản đồ trong khi định vị; VI-LiDAR sử dụng bản đồ point cloud đã có làm mốc tham chiếu.</p></div>
+</div></div></section>
+<section id="mo-phong" class="block subtle"><div class="container">
+<div class="section-heading"><div class="eyebrow">Phòng thí nghiệm trực quan</div><h2>Mô phỏng cách robot tìm lại vị trí</h2><p class="intro">Trực quan hóa quét tia LiDAR, vị trí robot, đường đi và các ứng viên ban đầu. Bấm “Mất định vị” rồi “Tìm lại” để hiểu quá trình khôi phục có giám sát.</p></div>
+<div class="sim-grid">
+<div class="panel"><div class="canvas-wrap"><canvas id="lidarCanvas" width="700" height="410" role="img" aria-label="Bản đồ mô phỏng mặt bằng 2D với robot, các tia quét LiDAR, vệt đường đi và các ứng viên vị trí">Trình duyệt cần hỗ trợ Canvas để hiển thị mô phỏng.</canvas></div><div class="canvas-legend"><span><i class="legend-dot" style="background:#50e1c0"></i>Quét LiDAR</span><span><i class="legend-dot" style="background:#6da8ff"></i>Robot / quỹ đạo</span><span><i class="legend-dot" style="background:#ffc27c"></i>Ứng viên vị trí</span></div></div>
+<div class="panel panel-pad">
+<div class="control-head"><h3>Bảng điều khiển</h3><span class="pill">Mô phỏng minh họa</span></div><p class="muted" style="font-size:14px">Diễn tiến giả lập trong mặt bằng 2D, không chạy thuật toán NDT, GICP hay ROS 2 thật.</p>
+<div class="telemetry"><div class="readout"><label>Trạng thái</label><strong id="simState" aria-live="polite">Chưa bắt đầu</strong></div><div class="readout"><label>Vị trí tương đối</label><strong id="simPose">—</strong></div><div class="readout"><label>Đám mây điểm</label><strong id="simPoints">—</strong></div><div class="readout"><label>Nguồn dữ liệu</label><strong>Giả lập</strong></div></div>
+<div class="select-row"><label for="algorithm">Đọc thêm về thuật toán</label><select id="algorithm"><option value="ndt">NDT</option><option value="gicp">GICP</option></select></div>
+<p id="algoInfo" class="micro">NDT: so khớp quét với phân bố xác suất của các ô bản đồ.</p>
+<div class="buttons"><button id="startBtn" class="btn primary small" type="button">▶ Bắt đầu</button><button id="loseBtn" class="btn small" type="button" disabled>⚠ Mất định vị</button><button id="recoverBtn" class="btn small" type="button" disabled>↺ Tìm lại</button><button id="resetBtn" class="btn small" type="button">Đặt lại</button></div>
+<div class="note"><strong>Lưu ý khoa học:</strong> Điểm quét và quỹ đạo do JavaScript tạo ra để giảng giải hình học. Không dùng mô phỏng này để báo cáo độ chính xác, thời gian hội tụ hoặc benchmark thuật toán.</div>
+</div></div>
+</div></section>
+<section id="kien-truc" class="block"><div class="container">
+<div class="section-heading"><div class="eyebrow">Luồng xử lý ROS 2</div><h2>Từ đám mây điểm đến tọa độ robot</h2><p class="intro">Tách bạch tìm kiếm toàn cục khi khởi động, theo dõi cục bộ khi đã có pose, và bộ giám sát khôi phục.</p></div>
+<div class="flow-grid">
+<div class="step"><span class="num">01 / DỮ LIỆU</span><h3>LiDAR + bản đồ</h3><p>Quét 3D, bản đồ .pcd hoặc .ply, IMU và odometry tùy chọn.</p></div>
+<div class="step"><span class="num">02 / TIỀN XỬ LÝ</span><h3>Lọc và bù chuyển động</h3><p>Cắt khoảng đo, voxel, deskew nếu có dữ liệu cần thiết.</p></div>
+<div class="step"><span class="num">03 / KHỞI TẠO</span><h3>Tìm vị trí toàn cục</h3><p>Tạo ứng viên vị trí, đánh giá bằng đăng ký quét và kiểm tra tính nhất quán.</p></div>
+<div class="step"><span class="num">04 / THEO DÕI</span><h3>NDT hoặc GICP</h3><p>So khớp vùng bản đồ gần pose dự đoán; kiểm tra ngưỡng chất lượng.</p></div>
+<div class="step"><span class="num">05 / ĐIỀU HƯỚNG</span><h3>Pose + TF + Nav2</h3><p>Xuất pose và TF; nếu mất bám, chuyển sang giám sát tìm lại vị trí.</p></div>
+</div>
+<h3 class="mini-heading">Định vị trên bản đồ và SLAM khác nhau thế nào?</h3>
+<div class="table-wrap"><table><thead><tr><th>Đặc điểm</th><th>VI-LiDAR / Localization</th><th>SLAM</th></tr></thead><tbody>
+<tr><td>Mục tiêu</td><td>Xác định pose trên bản đồ có sẵn</td><td>Đồng thời lập bản đồ và định vị</td></tr>
+<tr><td>Đầu vào bản đồ</td><td>Cần point cloud map tham chiếu</td><td>Có thể bắt đầu chưa có bản đồ</td></tr>
+<tr><td>Đầu ra chính</td><td>Pose / TF / trạng thái so khớp</td><td>Bản đồ và quỹ đạo ước lượng</td></tr>
+<tr><td>Phù hợp</td><td>Lộ trình lặp lại trong nhà xưởng, robot trên bản đồ đã khảo sát</td><td>Khảo sát nơi mới, xây dựng bản đồ ban đầu</td></tr>
+</tbody></table></div>
+</div></section>
+<section id="du-lieu" class="block subtle"><div class="container">
+<div class="section-heading"><div class="eyebrow">Dữ liệu công khai · chạy phát lại ngoại tuyến</div><h2>Đánh giá với điều kiện và giới hạn rõ ràng</h2><p class="intro">Số liệu dẫn từ benchmark của tác giả nguồn, đo trong hệ tọa độ bản đồ, không căn chỉnh quỹ đạo để che sai lệch khởi tạo. Không phải kết quả thực nghiệm độc lập của bản Việt hóa.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Bộ dữ liệu</th><th>Lượt chạy</th><th>Khởi tạo đúng</th><th>Sai số trung vị</th><th>Sai số p95</th></tr></thead><tbody>
+<tr><td>Koide outdoor · MID-360 cầm tay</td><td>12</td><td>12/12</td><td>0,08–0,12 m</td><td>0,21–0,91 m</td></tr>
+<tr><td>Koide outdoor · tình huống di chuyển cưỡng bức</td><td>6</td><td>6/6</td><td>0,04–0,12 m</td><td>15,9–60,5 m</td></tr>
+<tr class="highlight-row"><td>JEPLO · Unitree Go2 · bản đồ lidar_slam_ros2</td><td>12</td><td>12/12</td><td>0,03 m</td><td>0,09–0,13 m</td></tr>
+<tr class="highlight-row"><td>JEPLO · Go2 · bản đồ rộng, cấu hình cảm biến thấp</td><td>18</td><td>18/18</td><td>0,02–0,03 m</td><td>Không công bố</td></tr>
+</tbody></table></div>
+<p class="micro">Đo ngày 06 và 11/10/2026 theo README nguồn, ROS 2 Jazzy, tốc độ phát lại 1×. Chỉ số p95 lớn trong tình huống “kidnap” phản ánh sai số trong thời gian chưa phục hồi. Một số cấu hình vẫn có thể phải đặt Initial Pose thủ công; chưa có xác thực robot vật lý dài hạn. <a href="https://github.com/rsasaki0109/lidar_localization_ros2/blob/main/docs/benchmark.md" target="_blank" rel="noopener noreferrer"><u>Xem phương pháp và bảng đầy đủ ↗</u></a></p>
+<div class="media-grid" style="margin-top:27px">
+<figure><img loading="lazy" src="images/readme/localization_koide_outdoor_hard_02b.gif" alt="Quỹ đạo LiDAR MID-360 ngoài trời so với bản đồ điểm và ground truth"><figcaption><strong>Koide ngoài trời:</strong> theo dõi trên bản đồ 3D; thí nghiệm riêng có RMSE toàn quỹ đạo khoảng 0,26 m khi khởi tạo từ ground truth.</figcaption></figure>
+<figure><img loading="lazy" src="images/readme/global_localization_jeplo_long_stairs.gif" alt="Tìm vị trí toàn cục trên Go2 và đi xuống cầu thang"><figcaption><strong>JEPLO – Go2:</strong> ví dụ tìm vị trí khởi đầu trên bản đồ khác phiên ghi và tiếp tục theo dõi; cần đọc chú thích giới hạn vùng có ground truth.</figcaption></figure>
+</div></div></section>
+<section id="cai-dat" class="block"><div class="container">
+<div class="section-heading"><div class="eyebrow">Bắt đầu triển khai</div><h2>Cài đặt và chạy thử ROS 2</h2><p class="intro">Lệnh minh họa cho hệ điều hành Linux có ROS 2 Jazzy hoặc Humble. Dùng đúng package ROS 2 gốc <code>lidar_localization_ros2</code>; tên repository Việt hóa là <code>vi-lidar</code>.</p></div>
+<div class="setup-grid"><div>
+<h3>1. Tải repository Việt hóa và biên dịch</h3>
+<div class="code"><button class="copy" type="button" aria-label="Sao chép lệnh cài đặt">Sao chép</button><pre><code>mkdir -p ~/lidarloc_ws/src
+cd ~/lidarloc_ws/src
+git clone https://github.com/xulytiengviet/vi-lidar.git lidar_localization_ros2
+cd lidar_localization_ros2
+scripts/bootstrap_colcon_workspace.sh --build
+source ~/lidarloc_ws/install/setup.bash</code></pre></div>
+<h3>2. Cấp dữ liệu và định vị trên bản đồ</h3><p class="muted">Khởi động driver LiDAR và nguồn odometry nếu có; sau đó mở quickstart:</p>
+<div class="code"><button class="copy" type="button" aria-label="Sao chép lệnh chạy thử">Sao chép</button><pre><code>ros2 run lidar_localization_ros2 quickstart.py \
+  --map /duong/dan/tuyet/doi/map.pcd
+
+ros2 run lidar_localization_ros2 \
+  check_lidar_localization_bringup.py --profile standalone</code></pre></div>
+<h3>3. Tùy chọn điều hướng bằng Nav2</h3>
+<div class="code"><button class="copy" type="button" aria-label="Sao chép lệnh Nav2">Sao chép</button><pre><code>ros2 launch lidar_localization_ros2 nav2_navigation.launch.py \
+  map_yaml:=/duong/dan/tuyet/doi/map.yaml</code></pre></div>
+<p class="micro">Nav2 cần thêm bản đồ chiếm chỗ 2D và phép biến đổi <code>odom → base_link</code>. Trong chế độ Nav2, bộ định vị cung cấp <code>map → odom</code>. Cần bảo đảm mỗi biến đổi TF chỉ có một nguồn phát.</p>
+</div>
+<aside class="aside"><h3>Điều kiện cần kiểm tra</h3><ul><li>ROS 2 Jazzy (ưu tiên) hoặc Humble, máy Linux đủ tài nguyên xử lý point cloud.</li><li>Bản đồ .pcd/.ply đã được tạo và hệ tọa độ nhất quán với robot.</li><li>Topic LiDAR và các TF cảm biến hoạt động; odometry/IMU có thể hỗ trợ.</li><li>Nếu không đủ tin cậy, dùng <strong>2D Pose Estimate</strong> trong RViz thay vì ép hệ thống đoán.</li><li>Không chạy điều hướng thực tế chỉ dựa vào mô phỏng web; phải có cơ chế an toàn dừng robot.</li></ul>
+<h3>ROS 2 Topics</h3><p class="micro">Đầu vào: <code>/cloud</code>, <code>/initialpose</code>, <code>/odom</code>, <code>/imu</code>.</p><p class="micro">Đầu ra: <code>/pcl_pose</code>, <code>/path</code>, <code>/alignment_status</code>, <code>/reinitialization_requested</code>.</p>
+<p><a href="docs/quickstart.md"><u>Hướng dẫn nguồn chi tiết ↗</u></a></p><p><a href="docs/troubleshooting.md"><u>Xử lý lỗi thường gặp ↗</u></a></p></aside></div>
+</div></section>
+<section class="block subtle" id="tai-nguyen"><div class="container"><div class="section-heading"><div class="eyebrow">Mở rộng & tham khảo</div><h2>Tài liệu và mã nguồn</h2></div>
+<div class="resource-grid">
+<a class="resource" href="https://github.com/xulytiengviet/vi-lidar"><strong>VI-LiDAR · GitHub ↗</strong><span>Phiên bản Việt hóa, tài liệu và mã nguồn ROS 2.</span></a>
+<a class="resource" href="https://github.com/rsasaki0109/lidar_localization_ros2"><strong>Dự án gốc ↗</strong><span>Thuật toán, lịch sử thay đổi, quyền tác giả và benchmark nguồn.</span></a>
+<a class="resource" href="https://github.com/rsasaki0109/lidar_localization_ros2/blob/main/docs/go2_mid360_quickstart.md"><strong>Unitree Go2 + MID-360 ↗</strong><span>Hướng dẫn thiết lập cảm biến, driver và mô hình robot bốn chân.</span></a>
+</div></div></section>
+</main>
+<footer class="footer"><div class="container footrow"><div><strong>VI-LiDAR</strong> · Trang giới thiệu tiếng Việt cho cộng đồng Robotics và ROS 2.<p>Được Việt hóa từ rsasaki0109/lidar_localization_ros2 · Giữ nguyên giấy phép BSD-2-Clause của mã nguồn lõi. GIF từ các bộ dữ liệu có giấy phép riêng được nêu trong tài liệu gốc.</p></div><a href="#dau">Lên đầu trang ↑</a></div></footer>
+<script>
+(function(){
+"use strict";
+document.querySelectorAll(".copy").forEach(function(btn){btn.addEventListener("click",function(){var code=btn.parentElement.querySelector("code").textContent;navigator.clipboard.writeText(code).then(function(){btn.textContent="Đã chép ✓";setTimeout(function(){btn.textContent="Sao chép";},1800);}).catch(function(){btn.textContent="Không thể sao chép";});});});
+var info=document.getElementById("algoInfo"),algo=document.getElementById("algorithm");
+algo.addEventListener("change",function(){info.textContent=algo.value==="ndt"?"NDT: so khớp quét với phân bố xác suất của các ô bản đồ.":"GICP: đăng ký đám mây điểm bằng mô hình sai số hình học có hiệp phương sai. Đây chỉ là mô tả, không thay đổi mô phỏng.";});
+var canvas=document.getElementById("lidarCanvas"),ctx=canvas.getContext("2d");
+if(!ctx)return;
+var dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=700*dpr;canvas.height=410*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+var segments=[[32,30,668,30],[668,30,668,380],[668,380,32,380],[32,380,32,30],[90,103,220,103],[220,103,220,163],[480,66,480,140],[480,140,608,140],[110,284,234,284],[234,284,234,351],[478,267,610,267],[478,267,478,340],[317,93,396,93],[396,93,396,145]];
+var start=document.getElementById("startBtn"),lose=document.getElementById("loseBtn"),recover=document.getElementById("recoverBtn"),reset=document.getElementById("resetBtn");
+var state=document.getElementById("simState"),pose=document.getElementById("simPose"),points=document.getElementById("simPoints");
+var phase="idle",paused=false,t=1.9,entered=0,recovery=false,path=[],count=0,last=0;
+function robot(){return {x:349+154*Math.cos(t),y:203+95*Math.sin(t),yaw:t+Math.PI/2};}
+function setPhase(v){phase=v;entered=performance.now();sync();}
+function sync(){var labels={idle:"Chưa bắt đầu",searching:"Đang tìm toàn cục",tracking:paused?"Tạm dừng":"Đang bám vị trí",lost:"Mất định vị"};state.textContent=labels[phase];state.style.color=phase==="tracking"?"#72eacb":phase==="lost"?"#ffad96":"#e7f3ff";start.textContent=phase==="tracking"?(paused?"▶ Tiếp tục":"Ⅱ Tạm dừng"):"▶ Bắt đầu";lose.disabled=phase!=="tracking";recover.disabled=phase!=="lost";}
+start.addEventListener("click",function(){if(phase==="tracking"){paused=!paused;sync();}else{paused=false;recovery=false;setPhase("searching");}});
+lose.addEventListener("click",function(){if(phase==="tracking"){paused=false;setPhase("lost");}});
+recover.addEventListener("click",function(){if(phase==="lost"){recovery=true;setPhase("searching");}});
+reset.addEventListener("click",function(){phase="idle";paused=false;t=1.9;path=[];count=0;pose.textContent="—";points.textContent="—";sync();});
+function ray(x,y,a){var dx=Math.cos(a),dy=Math.sin(a),closest=205;segments.forEach(function(s){var sx=s[2]-s[0],sy=s[3]-s[1],den=dx*sy-dy*sx;if(Math.abs(den)<1e-6)return;var px=s[0]-x,py=s[1]-y,dist=(px*sy-py*sx)/den,u=(px*dy-py*dx)/den;if(dist>0&&u>=0&&u<=1&&dist<closest)closest=dist;});return {x:x+dx*closest,y:y+dy*closest};}
+function draw(now){var elapsed=Math.min((now-last)||16,80);last=now;
+if(phase==="searching"&&now-entered>2500){setPhase("tracking");}
+if(phase==="tracking"&&!paused){t+=elapsed*.00035;var p=robot();path.push([p.x,p.y]);if(path.length>260)path.shift();}
+ctx.clearRect(0,0,700,410);ctx.fillStyle="#071524";ctx.fillRect(0,0,700,410);
+ctx.strokeStyle="#142b42";ctx.lineWidth=1;for(var gx=0;gx<700;gx+=25){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,410);ctx.stroke();}for(var gy=0;gy<410;gy+=25){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(700,gy);ctx.stroke();}
+ctx.strokeStyle="#39536c";ctx.lineWidth=7;ctx.lineCap="round";segments.forEach(function(s){ctx.beginPath();ctx.moveTo(s[0],s[1]);ctx.lineTo(s[2],s[3]);ctx.stroke();});
+ctx.strokeStyle="#183e50";ctx.lineWidth=1.5;segments.forEach(function(s){ctx.beginPath();ctx.moveTo(s[0],s[1]);ctx.lineTo(s[2],s[3]);ctx.stroke();});
+var p=robot(),tracking=(phase==="tracking"||phase==="lost"),searching=phase==="searching";
+if(path.length>1){ctx.lineWidth=2.5;ctx.strokeStyle="#6da8ffa8";ctx.beginPath();path.forEach(function(pt,i){if(!i)ctx.moveTo(pt[0],pt[1]);else ctx.lineTo(pt[0],pt[1]);});ctx.stroke();}
+if(searching){var pct=Math.min(1,(now-entered)/2500);for(var j=0;j<15;j++){var theta=j*2.39996,dist=(1-pct)*150+8,xx=p.x+Math.cos(theta)*dist*(.5+j/15),yy=p.y+Math.sin(theta)*dist*(.5+j/15);ctx.strokeStyle="rgba(255,196,118,"+(0.72-pct*.35)+")";ctx.lineWidth=1;ctx.beginPath();ctx.arc(xx,yy,7,0,Math.PI*2);ctx.stroke();}ctx.fillStyle="#ffce89";ctx.font="600 13px system-ui";ctx.fillText(recovery?"Tìm lại pose sau mất bám…":"Tìm ứng viên vị trí toàn cục…",45,24);}
+if(tracking||searching){var total=110;for(var i=0;i<total;i++){var a=i/total*Math.PI*2,hit=ray(p.x,p.y,a);ctx.strokeStyle=phase==="lost"?"rgba(255,132,115,.07)":"rgba(80,225,192,.105)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(hit.x,hit.y);ctx.stroke();ctx.fillStyle=phase==="lost"?"#d98274":"#5ef5ce";ctx.fillRect(hit.x-1.5,hit.y-1.5,3,3);}count=total;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.yaw);ctx.fillStyle=phase==="lost"?"#e99a83":"#6da8ff";ctx.strokeStyle="#d1e9ff";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(-12,-10);ctx.lineTo(-7,0);ctx.lineTo(-12,10);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();ctx.font="600 12px system-ui";ctx.fillStyle="#f2f7ff";ctx.fillText("ROBOT",p.x+20,p.y-15);}
+if(phase==="idle"){ctx.fillStyle="#c7d5e4";ctx.font="600 17px system-ui";ctx.textAlign="center";ctx.fillText("Bản đồ phòng / nhà xưởng giả lập",350,201);ctx.font="13px system-ui";ctx.fillStyle="#8da9c2";ctx.fillText("Nhấn “Bắt đầu” để tìm vị trí robot",350,224);ctx.textAlign="left";}
+if(phase==="lost"){ctx.fillStyle="#ffab95";ctx.font="700 14px system-ui";ctx.fillText("MẤT ĐỊNH VỊ — chờ tìm lại",42,24);}
+if(phase==="tracking"||phase==="lost"){pose.textContent=(p.x/100).toFixed(2)+" m · "+(p.y/100).toFixed(2)+" m";points.textContent=count+" tia / khung";}
+if(phase==="searching"){pose.textContent="Đang tìm…";points.textContent=count+" tia / khung";}
+requestAnimationFrame(draw);}
+sync();requestAnimationFrame(draw);
+})();
+</script>
+</body></html>
