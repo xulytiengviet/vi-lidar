@@ -1,150 +1,142 @@
 <div align="center">
 
-<h1>lidar_localization_ros2</h1>
+# VI-LiDAR — Robot tự định vị không cần GPS
 
-<p><strong>Map-based 3D LiDAR localization for ROS 2 and Nav2.</strong></p>
+**Định vị 3D bằng LiDAR trên bản đồ đám mây điểm có sẵn, dành cho ROS 2 và Nav2.**
 
-<p>
-  <a href="https://github.com/rsasaki0109/lidar_localization_ros2/actions/workflows/main.yml">
-    <img alt="build" src="https://github.com/rsasaki0109/lidar_localization_ros2/actions/workflows/main.yml/badge.svg">
-  </a>
-  <img alt="ROS 2 Jazzy" src="https://img.shields.io/badge/ROS%202-Jazzy-2563eb">
-  <img alt="ROS 2 Humble" src="https://img.shields.io/badge/ROS%202-Humble-compatible-1f5b99">
-  <img alt="ROS 2 Foxy" src="https://img.shields.io/badge/ROS%202-Foxy-best--effort-64748b">
-  <img alt="License BSD 2 Clause" src="https://img.shields.io/badge/license-BSD--2--Clause-6b46c1">
-</p>
+[![ROS 2 Jazzy](https://img.shields.io/badge/ROS%202-Jazzy-2563eb)](https://docs.ros.org/en/jazzy/)
+[![ROS 2 Humble](https://img.shields.io/badge/ROS%202-Humble-1f5b99)](https://docs.ros.org/en/humble/)
+[![BSD-2-Clause](https://img.shields.io/badge/License-BSD--2--Clause-8b5cf6)](LICENSE)
 
-<img src="./images/readme/localization_koide_outdoor_hard_02b.gif" alt="Handheld outdoor run tracked on a prior point-cloud map; the estimate follows the ground truth for the whole run" width="720">
+**[Trang giới thiệu / mô phỏng tiếng Việt](index.html)** · **[English README](README.en.md)** · **[Dự án gốc](https://github.com/rsasaki0109/lidar_localization_ros2)**
 
-<p><em>Handheld Livox MID-360, ~390 m outdoors on a prior map, including stretches where the scans do not match the map and a section outside it. Each scan is matched to the map with NDT; RKO-LIO odometry predicts the motion between scans and carries the pose where matching fails. The error is 0.26 m RMSE for the whole run, in an offline replay started from the ground-truth pose (<a href="https://zenodo.org/records/10122133">Koide Hard Point Cloud Localization Dataset</a> <code>outdoor_hard_02b</code>, CC BY 4.0). <a href="./docs/readme-media.md">How this was made</a> · <a href="./docs/koide_gif_gallery.md">more runs</a></em></p>
+![Robot Unitree Go2 tự tìm vị trí khởi đầu trên bản đồ rồi di chuyển](images/readme/global_localization_jeplo_long_stairs.gif)
 
-<img src="./images/readme/global_localization_jeplo_long_stairs.gif" alt="A Unitree Go2 starts with no pose on a map from another recording; ranked candidates appear all over the map, the best one is accepted, the scan snaps onto the map and the robot is tracked out of the room and down the stairs" width="720">
-
-<p><em>Global localization on a Unitree Go2 (upside-down Livox MID-360), started with no initial pose, on a map from a different recording: the map is built from the run <code>Long_Stairs</code>, the scans come from the run <code>Outdoor2</code>, recorded 1.5 h later along the same route (the room was not rearranged in between). The quickstart searches the whole map: each query returns 32 ranked places (circles sized by score) in 2.6 s, and the answer is accepted when two queries agree after the odometry motion. The first pose came 13.3 s into the run, 6.4 s after the first search, 0.01 m from the motion-capture ground truth. Tracking then follows the robot out of the capture room and down the long staircase, within 0.02 m (median) of the ground truth where it exists (the room). Offline replay at 1× (<a href="https://huggingface.co/datasets/ASIG-Lab/JEPLO-Dataset">JEPLO dataset</a>, GPL-3.0; this GIF is derived from it and shared under the same licence). <a href="./docs/readme-media.md#global-localization-on-a-go2">How this was made</a> · <a href="./docs/benchmark.md#cross-session-go2-jeplo">pairs with moved props, including failures</a></em></p>
+*Hình động từ thử nghiệm phát lại dữ liệu JEPLO của dự án gốc: Unitree Go2 với Livox MID-360 tìm vị trí trên bản đồ có sẵn. Đây là kết quả chạy ngoại tuyến từ bộ dữ liệu công khai, không phải robot được điều khiển từ website.*
 
 </div>
 
-Give it a point cloud map (`.pcd` or `.ply`) and a LiDAR stream; it publishes the
-robot pose in the map. It finds the starting pose by itself, uses odometry and IMU when
-you have them, and works standalone or as the localization source for Nav2.
+> **Phạm vi bản Việt hóa:** Repository này giữ nguyên package và thuật toán ROS 2 `lidar_localization_ros2`, bổ sung trang web và README tiếng Việt để phục vụ cộng đồng nghiên cứu robot tự hành. Mã nguồn gốc thuộc [rsasaki0109/lidar_localization_ros2](https://github.com/rsasaki0109/lidar_localization_ros2), sử dụng giấy phép BSD-2-Clause. Tài liệu kỹ thuật chuyên sâu còn ở tiếng Anh và liên kết bên dưới.
 
-## Where to start
+## 1. VI-LiDAR dùng để làm gì?
 
-| You want to | Go to |
-| --- | --- |
-| Localize your robot on a map you already have | [Install](#install), then [Quick start](#quick-start) |
-| Run it on a Unitree Go2 or another MID-360 robot | [Go2 / MID-360 in five minutes](docs/go2_mid360_quickstart.md) |
-| Navigate with Nav2 | [Nav2](#nav2) |
-| Try it without a robot | [Run the public dataset](#try-it-without-a-robot) |
-| See how accurate it is | [Benchmark](#benchmark) |
-| Fix a bringup that does not work | [Troubleshooting](docs/troubleshooting.md) |
+Robot tự hành thường phải biết **tọa độ và hướng (pose)** tương đối với một bản đồ. Khi không có GPS hoặc không muốn nhập `Initial Pose` bằng tay trong RViz, bộ định vị có thể:
 
-## Install
+1. Nhận bản đồ đám mây điểm 3D đã được xây dựng (`.pcd` hoặc `.ply`).
+2. Nhận các lượt quét LiDAR trên robot.
+3. Tìm nhiều ứng viên vị trí trên toàn bản đồ (**global localization**).
+4. Đánh giá các ứng viên bằng mức độ tương thích với dữ liệu quét và sự nhất quán theo chuyển động.
+5. Khi đủ tin cậy, khởi tạo pose và theo dõi liên tục bằng **NDT** (mặc định) hoặc **GICP** (tùy cấu hình).
+6. Khi mất bám, phát tín hiệu trạng thái và có thể thực hiện **relocalization** có giám sát.
 
-ROS 2 Jazzy is the main target; Humble is supported. Foxy is end-of-life and supported
-on a best-effort basis: CI builds and tests it, and its differences are listed in the
-[changelog](CHANGELOG.md) under Unreleased.
+Robot có thể dùng thêm IMU và odometry để dự đoán chuyển động giữa các lượt quét. **Không cần GPS không có nghĩa là không cần bản đồ**, và tính năng tự tìm vị trí không bảo đảm thành công trong mọi môi trường.
 
-All of them build from `main`. The old `foxy`, `humble` and `jazzy` branches are no
-longer kept; their last commits are the tags `archive/foxy`, `archive/humble` and
-`archive/jazzy`. ROS 2 Dashing, which `main` does not support, has the frozen
-`dashing` branch.
+### Định vị không phải SLAM
+
+| Tiêu chí | VI-LiDAR (Localization) | SLAM |
+| --- | --- | --- |
+| Mục tiêu | Xác định robot đang ở đâu trên bản đồ đã biết | Xây dựng bản đồ song song với định vị |
+| Bản đồ ban đầu | Cần bản đồ point cloud tham chiếu | Có thể chưa có |
+| Đầu ra | Pose, TF, quỹ đạo, trạng thái đăng ký quét | Bản đồ mới và pose |
+| Ứng dụng | AMR/AGV lặp tuyến đường, nhà xưởng, robot bốn chân | Khảo sát, lập bản đồ lần đầu |
+
+## 2. Các chức năng kỹ thuật
+
+- **Global Localization:** tìm kiếm trên toàn bản đồ khi khởi động hoặc mất vị trí khởi tạo.
+- **NDT / GICP:** đăng ký đám mây điểm LiDAR với vùng bản đồ gần pose dự đoán; `ndt_omp_ros2` là phụ thuộc chính; `small_gicp` có thể bổ sung cho `SMALL_GICP` / `SMALL_VGICP`.
+- **LiDAR + IMU + odometry:** lọc dữ liệu, hỗ trợ bù chuyển động và dự đoán pose khi quét không khớp.
+- **Phục hồi có điều kiện:** giám sát điểm tin cậy và chỉ đặt lại pose khi ứng viên đủ thuyết phục; khi mơ hồ có thể yêu cầu thao tác trong RViz.
+- **ROS 2 và Nav2:** Jazzy là mục tiêu chính, Humble được hỗ trợ. Foxy đã hết vòng đời và chỉ được duy trì theo khả năng tốt nhất của bản gốc.
+- **Tự khám phá topic và TF:** script `quickstart.py` có thể dò nguồn LiDAR, IMU, `/clock` và `odom → base`.
+
+### Luồng xử lý tóm tắt
+
+```mermaid
+flowchart TD
+    A["Bản đồ point cloud .pcd/.ply + quét LiDAR"] --> B["Lọc / deskew / voxel"]
+    C["IMU / Odometry (tùy chọn)"] -. "dự đoán chuyển động" .-> D
+    B --> D{"Đã có pose tin cậy?"}
+    D -- "Chưa" --> E["Tìm ứng viên trên toàn bản đồ"]
+    E --> F["So khớp + kiểm tra nhất quán"]
+    F -- "Đủ tin cậy" --> G["Theo dõi NDT/GICP cục bộ"]
+    F -- "Mơ hồ" --> H["Yêu cầu 2D Pose Estimate"]
+    H --> G
+    D -- "Rồi" --> G
+    G --> I{"Chất lượng so khớp?"}
+    I -- "Đạt" --> J["Xuất pose / TF / trạng thái"]
+    I -- "Suy giảm" --> K["Dùng odometry dự đoán; giám sát mất bám"]
+    K --> E
+    J --> G
+```
+
+Đây là sơ đồ diễn giải, không thay thế [sơ đồ triển khai gốc](README.en.md#how-it-works).
+
+## 3. Cài đặt
+
+**Yêu cầu:** Ubuntu/Linux có ROS 2 Jazzy hoặc Humble, bộ dữ liệu LiDAR hoặc cảm biến thật và bản đồ 3D. Công cụ `bootstrap_colcon_workspace.sh` cài/biên dịch các phụ thuộc cần thiết theo cấu hình của dự án.
 
 ```bash
 mkdir -p ~/lidarloc_ws/src
 cd ~/lidarloc_ws/src
-git clone https://github.com/rsasaki0109/lidar_localization_ros2.git
+
+# Lấy fork Việt hóa, vẫn giữ tên package ROS 2 gốc:
+git clone https://github.com/xulytiengviet/vi-lidar.git lidar_localization_ros2
 cd lidar_localization_ros2
+
 scripts/bootstrap_colcon_workspace.sh --build
 source ~/lidarloc_ws/install/setup.bash
 ```
 
-This builds [ndt_omp_ros2](https://github.com/rsasaki0109/ndt_omp_ros2) and this
-package, about 30 minutes on an 8-core machine.
-[small_gicp](https://github.com/koide3/small_gicp) is optional (`SMALL_GICP` and
-`SMALL_VGICP` backends): on Jazzy, `sudo apt install ros-jazzy-small-gicp-vendor`
-before building is enough. For Humble, a manual or no-sudo build, see
-[local build](docs/local_build.md).
+**Quan trọng:** GitHub repository có tên `vi-lidar`, nhưng tên ROS package vẫn là `lidar_localization_ros2`. Không đổi tên package trong lệnh `ros2 run` hoặc `ros2 launch`.
 
-No ROS install? Build the [Docker image](docs/docker.md) and check it in one command:
+Nếu chưa muốn cài trực tiếp ROS 2, có thể dùng Docker theo hướng dẫn [docs/docker.md](docs/docker.md):
 
 ```bash
 docker build -f docker/Dockerfile -t lidar_localization_ros2 .
-docker run --rm lidar_localization_ros2 /ws/src/lidar_localization_ros2/docker/smoke_status.sh
+docker run --rm lidar_localization_ros2 \
+  /ws/src/lidar_localization_ros2/docker/smoke_status.sh
 ```
 
-## Quick start
+### Chạy định vị trên bản đồ đã có
 
-1. Start the LiDAR driver, and odometry if you have it.
-2. Run quickstart with your map:
+Trước tiên khởi động driver LiDAR và odometry (nếu có). Thay đường dẫn `/absolute/path/to/map.pcd` bằng tệp bản đồ thật.
 
-   ```bash
-   ros2 run lidar_localization_ros2 quickstart.py --map /absolute/path/to/map.pcd
-   ```
-
-3. Check that it is tracking:
-
-   ```bash
-   ros2 run lidar_localization_ros2 check_lidar_localization_bringup.py --profile standalone
-   ```
-
-Quickstart finds the cloud and IMU topics, `/clock`, an `odom -> base` TF and the
-LiDAR frame, and prints what it picked on its `Discovery:` line. Then it starts the
-localizer and RViz. On the first run it searches the whole map for the robot; next time
-it restores the pose saved for the same map. If the search finds no safe match, it asks
-you for **2D Pose Estimate** in RViz (press **P**, click the robot, drag along its
-heading) instead of guessing.
-
-While it runs, the terminal prints one line whenever tracking starts, weakens, is lost
-or comes back, with what to do about it, and RViz shows the same status above the
-robot:
-
-```text
-[localization_status]: Tracking.
-[localization_status]: Tracking lost: no scan has matched the map for 4 s. If it does not recover, set 2D Pose Estimate in RViz.
+```bash
+ros2 run lidar_localization_ros2 quickstart.py \
+  --map /absolute/path/to/map.pcd
 ```
 
-What each line means: [reading the status line](docs/troubleshooting.md#reading-the-status-line).
+Kiểm tra đầu ra và đồ thị ROS:
 
-Useful options:
+```bash
+ros2 run lidar_localization_ros2 \
+  check_lidar_localization_bringup.py --profile standalone
+```
 
-- `--dry-run` shows what it would start, without starting it.
-- `--profile mid360` uses the Livox MID-360 preset.
-- `--initial-pose X Y Z QX QY QZ QW` skips the search when you know the pose.
-- `--no-rviz` for a headless robot; `--no-status` turns the status line off.
-- `--help` lists the bringup options; `--help-all` adds the tuning ones.
+`quickstart.py` tự dò topic và TF rồi khởi chạy định vị và RViz. Nếu có pose được lưu cho đúng bản đồ, chương trình thử xác minh và sử dụng lại. Nếu chưa có, hệ thống tìm pose trên toàn bản đồ. Khi không tìm được nghiệm đáng tin cậy, sử dụng **2D Pose Estimate** trong RViz (phím `P`).
 
-**Map from [lidar_slam_ros2](https://github.com/rsasaki0109/lidar_slam_ros2) with a
-MID-360?** Start its odometry first:
+Các tùy chọn thường dùng:
+
+| Cờ | Chức năng |
+| --- | --- |
+| `--dry-run` | In cấu hình dự kiến, không khởi chạy |
+| `--profile mid360` | Cấu hình cho Livox MID-360 |
+| `--initial-pose X Y Z QX QY QZ QW` | Chỉ định pose đã biết để bỏ qua bước tìm toàn cục |
+| `--no-rviz` | Chạy không giao diện đồ họa |
+| `--no-status` | Tắt dòng trạng thái |
+| `--help-all` | Xem thêm cấu hình tinh chỉnh |
+
+### Unitree Go2 / Livox MID-360
+
+Có thể dùng odometry từ [lidar_slam_ros2](https://github.com/rsasaki0109/lidar_slam_ros2):
 
 ```bash
 ros2 launch lidarslam rko_lio_odometry.launch.py
-ros2 run lidar_localization_ros2 quickstart.py --map /path/to/output/my_map/map.pcd
+ros2 run lidar_localization_ros2 quickstart.py \
+  --map /path/to/output/my_map/map.pcd
 ```
 
-More: [quickstart and automatic initialization](docs/quickstart.md),
-[repeat-route site setup](docs/site_setup.md), [runtime details](docs/runtime.md).
-
-## Nav2
-
-```bash
-ros2 launch lidar_localization_ros2 nav2_navigation.launch.py \
-  map_yaml:=/absolute/path/to/map.yaml
-```
-
-Nav2 also needs a 2D occupancy map and an `odom -> base_link` source. In this mode the
-localizer publishes `map -> odom`.
-
-## Launch files
-
-Quickstart covers most setups. To launch directly:
-
-| Launch file | Use |
-| --- | --- |
-| `nav2_lidar_localization.launch.py` | Localization only |
-| `nav2_navigation.launch.py` | Localization plus the Nav2 stack |
-| `mid360_legged_localization.launch.py` | Livox MID-360 on a legged robot |
-| `lidar_localization.launch.py` | Base launch with every argument exposed |
+Để khởi chạy cấu hình trực tiếp cho robot bốn chân:
 
 ```bash
 ros2 launch lidar_localization_ros2 mid360_legged_localization.launch.py \
@@ -152,140 +144,92 @@ ros2 launch lidar_localization_ros2 mid360_legged_localization.launch.py \
   cloud_topic:=/livox/points imu_topic:=/livox/imu
 ```
 
-## How it works
+**Lưu ý:** Kiểm tra topic thực tế của driver vì tên topic có thể khác. Đọc [hướng dẫn Go2/MID-360 của tác giả](docs/go2_mid360_quickstart.md).
 
-Startup finds a first pose; then every scan is matched against the map near the
-predicted pose. When matching keeps failing, recovery searches the map again.
+## 4. Nav2, TF và các topic
 
-```mermaid
-flowchart LR
-    start(["quickstart.py --map"]) --> explicit{"--initial-pose?"}
-    explicit -- yes --> verify
-    explicit -- no --> saved{"pose saved for<br/>this map?"}
-    saved -- yes --> verify["verify against<br/>the next scans"]
-    saved -- "no / fails" --> search["global search<br/>2D candidates + NDT score"]
-    search -- "two views agree" --> verify
-    search -- ambiguous --> operator["ask for<br/>2D Pose Estimate"]
-    operator --> verify
-    verify -- ok --> tracking(["tracking"])
-    tracking -- "reinitialization request<br/>or odometry dropout" --> recovery["recovery: query the<br/>global search, guarded reset"]
-    recovery --> verify
+Khởi chạy ví dụ điều hướng:
+
+```bash
+ros2 launch lidar_localization_ros2 nav2_navigation.launch.py \
+  map_yaml:=/absolute/path/to/map.yaml
 ```
 
-Each scan:
+Nav2 còn cần bản đồ chiếm chỗ **2D** và nguồn TF `odom → base_link`. Ở chế độ này localizer xuất `map → odom`; ở chế độ độc lập có thể xuất `map → base_link`. Không để nhiều node cùng xuất một cạnh TF.
 
-```mermaid
-flowchart TD
-    odom[/"optional: external odometry<br/>e.g. RKO-LIO from lidar_slam_ros2,<br/>wheel or leg odometry"/]
-    scan["LiDAR scan"] --> prep["range crop, voxel filter,<br/>deskew"]
-    prep --> seed["seed pose: last pose,<br/>moved by odometry or IMU if given"]
-    seed --> reg["NDT or GICP against the map<br/>cropped around the seed"]
-    reg --> gate{"converged, score under<br/>threshold, guards pass?"}
-    gate -- yes --> pub["publish pose and TF,<br/>/alignment_status OK"]
-    gate -- no --> bridge["keep the predicted pose<br/>(odometry bridge)"]
-    bridge -- "rejected for long" --> reinit["/reinitialization_requested"]
-    odom -. "odom -> base TF" .-> seed
-    odom -. "carries the pose" .-> bridge
-```
-
-Map matching is always NDT (default) or GICP. External odometry is optional: it only
-predicts the motion between scans and carries the pose where scans do not match the
-map. It helps with fast or handheld motion; quickstart uses it when it sees an
-`odom -> base` TF.
-
-`/alignment_status` reports each step, and quickstart's status line turns it into
-Tracking / Weak / Odometry only / Lost. Details: [global localization](docs/global_localization.md),
-[initialization order](docs/quickstart.md#initialization-order),
-[runtime](docs/runtime.md), [reading the status line](docs/troubleshooting.md#reading-the-status-line).
-
-## Topics and frames
-
-Default frames are `map`, `odom` and `base_link`.
-
-| | Topics |
+| Nhóm | Topic mặc định |
 | --- | --- |
-| Inputs | `/cloud`, `/initialpose` (in `map`), `/odom`, `/imu`, `/map_switch` |
-| Outputs | `/pcl_pose`, `/path`, `/alignment_status`, `/reinitialization_requested` |
-| Status (quickstart) | `/localization_status/status` (JSON), `/localization_status/marker` (RViz label) |
+| Đầu vào | `/cloud`, `/initialpose`, `/odom`, `/imu`, `/map_switch` |
+| Đầu ra | `/pcl_pose`, `/path`, `/alignment_status`, `/reinitialization_requested` |
+| Trạng thái từ quickstart | `/localization_status/status`, `/localization_status/marker` |
 
-- Standalone mode publishes `map -> base_link`.
-- Nav2 mode publishes `map -> odom` and needs an external `odom -> base_link`.
-- `use_odom: true` reads `/odom`; it does not publish odometry TF.
-- `publish_tf: false` turns off every TF the localizer broadcasts; use it when another
-  node (for example `robot_localization` fusing `/pcl_pose`) owns `map -> odom`.
-- Each static LiDAR and IMU transform must have exactly one publisher.
+Tham khảo thêm [hợp đồng khung tọa độ](docs/frame_contract.md) và [lưu ý căn chỉnh bản đồ](docs/map_alignment.md).
 
-All topic names can be changed. See the [frame contract](docs/frame_contract.md).
+## 5. Kết quả benchmark và cách hiểu đúng
 
-`/map_switch` (`std_msgs/String` holding a `.pcd` or `.ply` path) replaces the map at
-runtime and keeps the current pose; a map that fails to load leaves the current one.
-If the new map has a different origin, publish `/initialpose` right after the switch.
-The global localization node keeps the map it was started with.
+Dữ liệu dưới đây **được trích từ README nguồn** trong các lượt phát lại ngoại tuyến ở ROS 2 Jazzy, 1×, ngày 06 và 11/10/2026. Mỗi lượt chạy khởi đầu không có pose; sai số được tính trong hệ tọa độ bản đồ, **không căn chỉnh lại quỹ đạo**.
 
-## Benchmark
+| Bộ dữ liệu | Lượt chạy | Khởi tạo đúng | Sai số trung vị | p95 |
+| --- | ---: | ---: | ---: | ---: |
+| Koide ngoài trời, MID-360 cầm tay, 4 chuỗi | 12 | 12/12 | 0,08–0,12 m | 0,21–0,91 m |
+| Koide ngoài trời, tình huống mang cảm biến sang nơi khác | 6 | 6/6 | 0,04–0,12 m | 15,9–60,5 m |
+| JEPLO, Unitree Go2, map từ lidar_slam_ros2, 4 chuỗi | 12 | 12/12 | 0,03 m | 0,09–0,13 m |
+| JEPLO Go2, bản đồ rộng, cấu hình low-sensor, 7 chuỗi | 18 | 18/18 | 0,02–0,03 m | Không công bố |
 
-Public datasets replayed through the same commands as above (odometry plus
-`quickstart.py --map`). Each run starts with no initial pose, so the localizer has to
-find the robot itself. Errors are measured in the map frame with no trajectory
-alignment, so a wrong start shows up as error.
+**Không được suy diễn rằng robot luôn đạt 2–3 cm.** Kết quả chỉ áp dụng cho các chuỗi, bản đồ, cảm biến và cấu hình được kiểm thử. Các tình huống “kidnap” có thể có sai số lớn trước khi phục hồi; một số cấu hình hoặc bản đồ đối xứng có thể khiến tìm kiếm toàn cục mơ hồ và phải nhập pose thủ công. Nguồn cũng chưa xác nhận bài kiểm thử chạy robot thật liên tục nhiều giờ.
 
-| Dataset | Runs | Started correctly | Median error | p95 error |
-| --- | --- | --- | --- | --- |
-| Koide outdoor, handheld MID-360 (4 sequences) | 12 | 12 | 0.08-0.12 m | 0.21-0.91 m |
-| Koide outdoor kidnap (sensor carried elsewhere) | 6 | 6 | 0.04-0.12 m | 15.9-60.5 m |
-| JEPLO, Unitree Go2, lidar_slam_ros2 map (4 sequences) | 12 | 12 | 0.03 m | 0.09-0.13 m |
-| JEPLO, Go2 on wide maps, [low-sensor settings](docs/go2_mid360_quickstart.md#large-maps) (7 sequences) | 18 | 18 | 0.02-0.03 m | - |
+![LiDAR MID-360 chạy ngoài trời trên bản đồ có sẵn](images/readme/localization_koide_outdoor_hard_02b.gif)
 
-Measured 2026-10-06 and 2026-10-11 on Jazzy at 1x. Ranges are over sequences.
+*Ví dụ Koide ngoài trời riêng biệt có RMSE quỹ đạo khoảng 0,26 m, bắt đầu từ pose ground truth; không nên gộp số liệu này với bài kiểm thử tự khởi tạo.*
 
-What this does not cover:
+Thông tin đầy đủ về kịch bản, dữ liệu và kết quả: [docs/benchmark.md](docs/benchmark.md). Bộ dữ liệu tham khảo: [Koide Hard Point Cloud Localization Dataset](https://zenodo.org/records/10122133) và [JEPLO Dataset](https://huggingface.co/datasets/ASIG-Lab/JEPLO-Dataset).
 
-- In the kidnap runs the error is large while the sensor is carried, until recovery.
-- On wide Go2 maps, the default search can stay ambiguous and ask for a manual pose
-  (Outdoor1). The low-sensor settings started every run in the table correctly; in six
-  later replays, one Outdoor2 run stayed ambiguous and asked for a manual pose.
-- No long multi-hour runs and no physical-hardware validation.
+### Thử nghiệm không cần robot
 
-Per-sequence tables, how to rerun, and dataset links: [docs/benchmark.md](docs/benchmark.md).
-
-## Try it without a robot
-
-Build this package and `rko_lio` from
-[lidar_slam_ros2](https://github.com/rsasaki0109/lidar_slam_ros2), then:
+Sau khi biên dịch package cùng `rko_lio` từ `lidar_slam_ros2`, chạy:
 
 ```bash
 ros2 run lidar_localization_ros2 run_koide_public_bag.py --download
 ```
 
-It downloads the Koide data, runs odometry and localization, and reports the error
-against the ground truth. Playback takes about five minutes. Data is cached in
-`./koide-data` and results go to `./koide-run-*`. See the
-[public-bag guide](docs/koide-online-replay.md).
+Lệnh tải bộ dữ liệu Koide, chạy phát lại odometry/định vị và xuất sai số so với ground truth. Đọc [hướng dẫn phát lại đầy đủ](docs/koide-online-replay.md); cần internet, dung lượng lưu trữ và môi trường ROS 2 phù hợp.
 
-## Documentation
+## 6. Website tiếng Việt và mô phỏng
 
-Using it:
+Tệp [`index.html`](index.html) là trang web tĩnh tự chứa (CSS + JavaScript), dành cho GitHub Pages. Nội dung gồm:
 
-- [Quickstart and automatic initialization](docs/quickstart.md)
-- [Docker](docs/docker.md): build, smoke test, and running on your data
-- [Go2 / MID-360 in five minutes](docs/go2_mid360_quickstart.md) and [MID-360 bringup](docs/mid360_legged_jetson.md)
-- [Repeat-route site setup](docs/site_setup.md)
-- [Runtime details](docs/runtime.md): parameter precedence, deskew, lifecycle
-- [Frames](docs/frame_contract.md) and [troubleshooting](docs/troubleshooting.md)
-- [Map alignment](docs/map_alignment.md): map frame and pose offsets
+- Giải thích cách robot tự tìm vị trí mà không cần GPS.
+- Phân biệt **định vị trên bản đồ** và **SLAM**.
+- Trực quan hóa mặt bằng 2D, tia LiDAR, đường đi và các ứng viên vị trí toàn cục.
+- Các thao tác **Bắt đầu → Mất định vị → Tìm lại → Đặt lại**.
+- Sơ đồ kiến trúc, thông số ROS 2, lệnh chạy và bảng benchmark có giới hạn rõ ràng.
 
-How it works:
+**Mô phỏng web chỉ là minh họa hình học bằng JavaScript**, không gọi ROS 2, NDT hay GICP thật, không chạy cảm biến và không tạo ra số liệu độ chính xác nghiên cứu.
 
-- [Global localization](docs/global_localization.md)
-- [IMU and deskew](docs/imu_estimation.md) and [pose covariance](docs/pose_covariance.md)
+Để xuất bản website, vào **Settings → Pages → Build and deployment**, đặt nguồn **Deploy from a branch**, chọn **main** và thư mục **/(root)**. Khi Pages được bật, địa chỉ dự kiến là:
 
-Results:
+https://xulytiengviet.github.io/vi-lidar/
 
-- [Benchmark](docs/benchmark.md) and [validated scope](docs/v1_status.md)
-- [Koide demo gallery](docs/koide_gif_gallery.md)
-- [Release notes](CHANGELOG.md)
-- [Development notes](docs/dev/README.md): plans, roadmaps, experiment records
+Có thể mở `index.html` trực tiếp trong trình duyệt để thử giao diện, nhưng đường dẫn hình minh họa cần giữ đúng cấu trúc repository.
 
-## License
+## 7. Hướng dẫn và tài liệu nguồn
 
-BSD 2-Clause.
+| Nội dung | Tài liệu |
+| --- | --- |
+| Cài đặt nhanh, tự nhận pose | [docs/quickstart.md](docs/quickstart.md) |
+| Robot Go2 + Livox MID-360 | [docs/go2_mid360_quickstart.md](docs/go2_mid360_quickstart.md) |
+| Tìm vị trí toàn cục và phục hồi | [docs/global_localization.md](docs/global_localization.md) |
+| Tính toán chuyển động IMU / deskew | [docs/imu_estimation.md](docs/imu_estimation.md) |
+| Đọc pose covariance | [docs/pose_covariance.md](docs/pose_covariance.md) |
+| Quy ước TF | [docs/frame_contract.md](docs/frame_contract.md) |
+| Xử lý lỗi | [docs/troubleshooting.md](docs/troubleshooting.md) |
+| Benchmark và tái lập | [docs/benchmark.md](docs/benchmark.md) |
+| Docker | [docs/docker.md](docs/docker.md) |
+| Bản README tiếng Anh | [README.en.md](README.en.md) |
+
+## 8. An toàn, giấy phép và ghi công
+
+- **Mã nguồn định vị**: tác giả gốc [rsasaki0109](https://github.com/rsasaki0109/lidar_localization_ros2), giấy phép [BSD-2-Clause](LICENSE); phải giữ thông báo bản quyền và điều khoản của mã nguồn khi tái sử dụng.
+- **Việt hóa & giao diện**: dự án [xulytiengviet/vi-lidar](https://github.com/xulytiengviet/vi-lidar).
+- **Hình động và datasets**: GIF JEPLO được dẫn xuất từ bộ dữ liệu có giấy phép GPL-3.0, Koide theo CC BY 4.0; bảo lưu các thông tin cấp phép/ghi công riêng như tài liệu gốc.
+- **An toàn robot**: cần dừng khẩn cấp, kiểm soát vận tốc, kiểm tra tọa độ/TF và giám sát tình trạng định vị trước khi kích hoạt phần cứng thực.
